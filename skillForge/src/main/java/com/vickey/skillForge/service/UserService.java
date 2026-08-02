@@ -1,0 +1,68 @@
+package com.vickey.skillForge.service;
+
+
+
+import com.vickey.skillForge.dto.UserRequestDto;
+import com.vickey.skillForge.dto.UserResponseDto;
+import com.vickey.skillForge.entity.User;
+import com.vickey.skillForge.repository.UserRepository;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class UserService {
+
+  private final  UserRepository userRepository;
+
+  public UserService(UserRepository userRepository)
+  {
+      this.userRepository=userRepository;
+  }
+
+  //creation of conversion of dto to entites
+    public UserResponseDto registerUser(UserRequestDto userRequestDto)
+    {
+        if (userRepository.existsByEmail(userRequestDto.getEmail())) {
+            throw new RuntimeException("Email already exists");
+        }
+        User user= convertToUser(userRequestDto);
+        User savedUser= userRepository.save(user);
+        return convertToResponseDto(savedUser);
+    }
+    private User convertToUser(UserRequestDto userRequestDto)
+    {
+        User user=new User();
+        user.setName(userRequestDto.getName());
+        user.setEmail(userRequestDto.getEmail());
+        user.setPassword(userRequestDto.getPassword());
+        return user;
+    }
+    private UserResponseDto convertToResponseDto(User user) {
+
+        UserResponseDto responseDTO = new UserResponseDto();
+
+        responseDTO.setId(user.getId());
+        responseDTO.setName(user.getName());
+        responseDTO.setEmail(user.getEmail());
+
+        return responseDTO;
+    }
+
+    //finding by id
+    public UserResponseDto findId(Long id)
+    {
+        User user= userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));;
+        return convertToResponseDto(user);
+    }
+    public List<UserResponseDto> getAllUsers() {
+
+        List<User> users = userRepository.findAll();
+
+        return users.stream()
+                .map(this::convertToResponseDto)
+                .toList();
+    }
+
+
+}
