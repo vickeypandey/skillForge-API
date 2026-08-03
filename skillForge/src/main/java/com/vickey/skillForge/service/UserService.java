@@ -63,6 +63,23 @@ public class UserService {
                 .map(this::convertToResponseDto)
                 .toList();
     }
+    //updating user
+    public UserResponseDto updateUser(Long id, UserRequestDto userRequestDto)
+    {
+        User user= userRepository.findById(id).orElseThrow(()-> new RuntimeException("user not fount"));
+        user.setName(userRequestDto.getName());
+        user.setEmail(userRequestDto.getEmail());
+        user.setPassword(userRequestDto.getPassword());
+        User updatedUser=userRepository.save(user);
+        return convertToResponseDto(updatedUser);
+    }
+
+    //deleting users by id
+    public void deleteUser(Long id)
+    {
+        User user=userRepository.findById(id).orElseThrow(()->new RuntimeException("user not foune"));
+        userRepository.delete(user);
+    }
 
 
 }
