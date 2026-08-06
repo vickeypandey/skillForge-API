@@ -58,7 +58,7 @@ public class UserService {
 
             skillDto.setId(skill.getId());
             skillDto.setSkillName(skill.getSkillName());
-            skillDto.setUser_id(user.getId());
+            skillDto.setUserId(user.getId());
 
             skillDtos.add(skillDto);
         }

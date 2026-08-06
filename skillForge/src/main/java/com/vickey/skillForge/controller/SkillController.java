@@ -9,8 +9,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/api/users/{userid}/skills")
+@RequestMapping("/api/users/{userId}/skills")
+
 public class SkillController {
 
     private final SkillService skillService;
@@ -20,11 +23,21 @@ public class SkillController {
     }
 
     @PostMapping
-    public ResponseEntity<SkillResponseDto> saveSkill(@PathVariable("userid") Long Userid, @RequestBody
+    public ResponseEntity<SkillResponseDto> saveSkill(@PathVariable Long userId, @RequestBody
                                                       @Valid SkillRequestDto skillRequestDto)
     {
-        SkillResponseDto skillResponseDto= skillService.addSkill(skillRequestDto,Userid);
+        SkillResponseDto skillResponseDto= skillService.addSkill(skillRequestDto,userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(skillResponseDto);
+    }
+
+
+
+    @GetMapping
+    public ResponseEntity<List<SkillResponseDto>> getById(@PathVariable Long userId)
+    {
+        Long id=userId;
+        List <SkillResponseDto> skillResponseDtos= skillService.getAllSkillsOfUser(id);
+        return ResponseEntity.ok(skillResponseDtos);
     }
 
 }
