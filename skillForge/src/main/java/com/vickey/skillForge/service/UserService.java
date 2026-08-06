@@ -2,14 +2,17 @@ package com.vickey.skillForge.service;
 
 
 
+import com.vickey.skillForge.dto.SkillResponseDto;
 import com.vickey.skillForge.dto.UserRequestDto;
 import com.vickey.skillForge.dto.UserResponseDto;
+import com.vickey.skillForge.entity.Skill;
 import com.vickey.skillForge.entity.User;
 import com.vickey.skillForge.exception.EmailAlreadyExistsException;
 import com.vickey.skillForge.exception.UserNotFoundException;
 import com.vickey.skillForge.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -47,6 +50,20 @@ public class UserService {
         responseDTO.setId(user.getId());
         responseDTO.setName(user.getName());
         responseDTO.setEmail(user.getEmail());
+
+        List<SkillResponseDto> skillDtos = new ArrayList<>();
+        for (Skill skill : user.getSkills()) {
+
+            SkillResponseDto skillDto = new SkillResponseDto();
+
+            skillDto.setId(skill.getId());
+            skillDto.setSkillName(skill.getSkillName());
+            skillDto.setUser_id(user.getId());
+
+            skillDtos.add(skillDto);
+        }
+
+        responseDTO.setSkills(skillDtos);
 
         return responseDTO;
     }
