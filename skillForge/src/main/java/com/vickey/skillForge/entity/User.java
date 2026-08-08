@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -20,7 +21,7 @@ public class User {
     private Long id;
 
     @OneToMany(mappedBy = "user")
-    private List<Skill> skills;
+    private List<Skill> skills= new ArrayList<>();
 
     private String email;
 

@@ -8,8 +8,14 @@ import com.vickey.skillForge.exception.SkillNotFoundException;
 import com.vickey.skillForge.exception.UserNotFoundException;
 import com.vickey.skillForge.repository.SkillRepository;
 import com.vickey.skillForge.repository.UserRepository;
+import org.hibernate.query.SortDirection;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.stereotype.Service;
-
+import org.springframework.data.domain.Sort;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,8 +70,84 @@ public class SkillService {
         return skillResponseDto;
     }
 
+    public SkillResponseDto updateSkillById(Long id,SkillRequestDto skillRequestDto)
+    {
+        Skill skill= skillRepository.findById(id).orElseThrow(()-> new SkillNotFoundException("skill not found"+id));
+        skill.setSkillName(skillRequestDto.getSkillName());
+        Skill updatedSkill=skillRepository.save(skill);
+
+        SkillResponseDto skillResponseDto= new SkillResponseDto();
+        skillResponseDto.setSkillName(updatedSkill.getSkillName());
+        skillResponseDto.setUserId(updatedSkill.getUser().getId());
+        skillResponseDto.setId(updatedSkill.getId());
+        return skillResponseDto;
+    }
+
+    public void deleteSkillById(Long id)
+    {
+        Skill skill= skillRepository.findById(id).orElseThrow(()-> new SkillNotFoundException("skill not found with skill id: "+ id));
+
+        skillRepository.delete(skill);
+    }
+
+    public List<SkillResponseDto> findByskillname(String skillNameGot)
+    {
+        List<Skill> skills= skillRepository.findBySkillNameContainingIgnoreCase(skillNameGot);
+
+        List<SkillResponseDto> responseDtos =new ArrayList<>();
+        for(Skill skill:skills)
+        {
+            SkillResponseDto skillResponseDto= new SkillResponseDto();
+            skillResponseDto.setSkillName(skill.getSkillName());
+            skillResponseDto.setId(skill.getId());
+            skillResponseDto.setUserId(skill.getUser().getId());
+            responseDtos.add(skillResponseDto);
+
+        }
+        return responseDtos;
+
+    }
+
+    //paging
+    public Page<SkillResponseDto> getAllSkillsPaginated(int page, int size,String sortBy,String direction)
+    {
+        if (page < 0) {
+            page = 0;
+        }
+
+        if (size <= 0) {
+            size = 5;
+        }
 
 
+        if (!sortBy.equals("id") &&
+                !sortBy.equals("skillName")) {
+
+            sortBy = "id";
+        }
+
+        Sort sort;
+
+        if (direction.equalsIgnoreCase("desc")) {
+            sort = Sort.by(sortBy).descending();
+        } else {
+            sort = Sort.by(sortBy).ascending();
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Skill> skills= skillRepository.findAll(pageable);
+
+        return skills.map(skill->{
+            SkillResponseDto skillResponseDto = new SkillResponseDto();
+
+            skillResponseDto.setId(skill.getId());
+            skillResponseDto.setSkillName(skill.getSkillName());
+            skillResponseDto.setUserId(skill.getUser().getId());
+
+            return skillResponseDto;
+        });
+    }
 }
 
 
