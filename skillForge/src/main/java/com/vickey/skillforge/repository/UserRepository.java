@@ -1,6 +1,6 @@
-package com.vickey.skillForge.repository;
+package com.vickey.skillforge.repository;
 
-import com.vickey.skillForge.entity.User;
+import com.vickey.skillforge.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

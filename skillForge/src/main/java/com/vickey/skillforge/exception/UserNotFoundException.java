@@ -1,4 +1,4 @@
-package com.vickey.skillForge.exception;
+package com.vickey.skillforge.exception;
 
 public class UserNotFoundException extends RuntimeException{
     public UserNotFoundException(String message)

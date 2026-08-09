@@ -1,4 +1,4 @@
-package com.vickey.skillForge.dto;
+package com.vickey.skillforge.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

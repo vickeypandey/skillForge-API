@@ -1,4 +1,4 @@
-package com.vickey.skillForge.entity;
+package com.vickey.skillforge.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

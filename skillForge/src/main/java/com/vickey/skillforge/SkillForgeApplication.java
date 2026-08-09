@@ -1,4 +1,4 @@
-package com.vickey.skillForge;
+package com.vickey.skillforge;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

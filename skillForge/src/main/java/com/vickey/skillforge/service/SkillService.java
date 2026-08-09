@@ -1,23 +1,24 @@
-package com.vickey.skillForge.service;
+package com.vickey.skillforge.service;
 
-import com.vickey.skillForge.dto.SkillRequestDto;
-import com.vickey.skillForge.dto.SkillResponseDto;
-import com.vickey.skillForge.entity.Skill;
-import com.vickey.skillForge.entity.User;
-import com.vickey.skillForge.exception.SkillNotFoundException;
-import com.vickey.skillForge.exception.UserNotFoundException;
-import com.vickey.skillForge.repository.SkillRepository;
-import com.vickey.skillForge.repository.UserRepository;
-import org.hibernate.query.SortDirection;
+import com.vickey.skillforge.dto.SkillRequestDto;
+import com.vickey.skillforge.dto.SkillResponseDto;
+import com.vickey.skillforge.entity.Skill;
+import com.vickey.skillforge.entity.User;
+import com.vickey.skillforge.exception.SkillNotFoundException;
+import com.vickey.skillforge.exception.UserNotFoundException;
+import com.vickey.skillforge.repository.SkillRepository;
+import com.vickey.skillforge.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.data.domain.Sort;
+
 import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 
 @Service
 public class SkillService {
@@ -30,12 +31,14 @@ public class SkillService {
         this.userRepository = userRepository;
     }
 
-    public SkillResponseDto addSkill(SkillRequestDto skillRequestDto, Long userid) {
-        User user = userRepository.findById(userid).orElseThrow(() -> new UserNotFoundException("user not found with:" + userid));
+    public SkillResponseDto addSkill(SkillRequestDto skillRequestDto, Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("user not found with:" + userId));
         Skill skill = new Skill();
         skill.setSkillName(skillRequestDto.getSkillName());
         skill.setUser(user);
         Skill savedSkill = skillRepository.save(skill);
+        log.info("Skill added successfully with id: {} for user id: {}",
+                savedSkill.getId(), userId);
 
         SkillResponseDto skillResponseDto = new SkillResponseDto();
         skillResponseDto.setSkillName(savedSkill.getSkillName());
@@ -44,9 +47,9 @@ public class SkillService {
         return skillResponseDto;
     }
 
-    public List<SkillResponseDto> getAllSkillsOfUser(Long id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("user not found  with id:" + id));
-        List<Skill> skills = skillRepository.findByUserId(id);
+    public List<SkillResponseDto> getAllSkillsOfUser(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("user not found  with id:" + userId));
+        List<Skill> skills = skillRepository.findByUserId(userId);
 
         List<SkillResponseDto> skillResponseDtos = new ArrayList<>();
 
@@ -60,9 +63,10 @@ public class SkillService {
         return skillResponseDtos;
     }
 
-    public SkillResponseDto getSkillById(Long id)
+    public SkillResponseDto getSkillById(Long skillId)
     {
-        Skill skill=skillRepository.findById(id).orElseThrow(()-> new SkillNotFoundException("skillnot found with id:"+id));
+        log.info("Fetching skills  with skillid: {}", skillId);
+        Skill skill=skillRepository.findById(skillId).orElseThrow(()-> new SkillNotFoundException("skillnot found with id:"+skillId));
         SkillResponseDto skillResponseDto= new SkillResponseDto();
         skillResponseDto.setId(skill.getId());
         skillResponseDto.setSkillName(skill.getSkillName());
@@ -70,11 +74,12 @@ public class SkillService {
         return skillResponseDto;
     }
 
-    public SkillResponseDto updateSkillById(Long id,SkillRequestDto skillRequestDto)
+    public SkillResponseDto updateSkillById(Long skillId,SkillRequestDto skillRequestDto)
     {
-        Skill skill= skillRepository.findById(id).orElseThrow(()-> new SkillNotFoundException("skill not found"+id));
+        Skill skill= skillRepository.findById(skillId).orElseThrow(()-> new SkillNotFoundException("skill not found"+skillId));
         skill.setSkillName(skillRequestDto.getSkillName());
         Skill updatedSkill=skillRepository.save(skill);
+        log.info("Skill updated successfully with id: {}", updatedSkill.getId());
 
         SkillResponseDto skillResponseDto= new SkillResponseDto();
         skillResponseDto.setSkillName(updatedSkill.getSkillName());
@@ -83,14 +88,16 @@ public class SkillService {
         return skillResponseDto;
     }
 
-    public void deleteSkillById(Long id)
+    public void deleteSkillById(Long skillId)
     {
-        Skill skill= skillRepository.findById(id).orElseThrow(()-> new SkillNotFoundException("skill not found with skill id: "+ id));
+        Skill skill= skillRepository.findById(skillId).orElseThrow(()-> new SkillNotFoundException("skill not found with skill id: "+ skillId));
 
         skillRepository.delete(skill);
+
+        log.info("Skill deleted successfully with id: {}", skillId);
     }
 
-    public List<SkillResponseDto> findByskillname(String skillNameGot)
+    public List<SkillResponseDto> searchSkillsByName(String skillNameGot)
     {
         List<Skill> skills= skillRepository.findBySkillNameContainingIgnoreCase(skillNameGot);
 

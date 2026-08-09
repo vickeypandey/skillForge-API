@@ -1,8 +1,6 @@
-package com.vickey.skillForge.exception;
+package com.vickey.skillforge.exception;
 
-import com.vickey.skillForge.exception.EmailAlreadyExistsException;
-import com.vickey.skillForge.exception.UserNotFoundException;
-import com.vickey.skillForge.dto.ErrorResponse;
+import com.vickey.skillforge.dto.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;

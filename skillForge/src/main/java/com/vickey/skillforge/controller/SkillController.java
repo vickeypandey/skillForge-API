@@ -1,9 +1,11 @@
-package com.vickey.skillForge.controller;
+package com.vickey.skillforge.controller;
 
 
-import com.vickey.skillForge.dto.SkillRequestDto;
-import com.vickey.skillForge.dto.SkillResponseDto;
-import com.vickey.skillForge.service.SkillService;
+import com.vickey.skillforge.dto.SkillRequestDto;
+import com.vickey.skillforge.dto.SkillResponseDto;
+import com.vickey.skillforge.service.SkillService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "User Skill APIs", description = "APIs for managing skills of a particular user")
 @RestController
 @RequestMapping("/api/users/{userId}/skills")
 
@@ -22,6 +25,7 @@ public class SkillController {
         this.skillService=skillService;
     }
 
+    @Operation(summary = "Set skills of a user by ID")
     @PostMapping
     public ResponseEntity<SkillResponseDto> saveSkill(@PathVariable Long userId, @RequestBody
                                                       @Valid SkillRequestDto skillRequestDto)
@@ -31,12 +35,12 @@ public class SkillController {
     }
 
 
-
+    @Operation(summary = "Get skills by userID")
     @GetMapping
     public ResponseEntity<List<SkillResponseDto>> getById(@PathVariable Long userId)
     {
-        Long id=userId;
-        List <SkillResponseDto> skillResponseDtos= skillService.getAllSkillsOfUser(id);
+
+        List <SkillResponseDto> skillResponseDtos= skillService.getAllSkillsOfUser(userId);
         return ResponseEntity.ok(skillResponseDtos);
     }
 
