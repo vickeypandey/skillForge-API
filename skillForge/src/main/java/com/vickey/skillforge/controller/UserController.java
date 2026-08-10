@@ -1,6 +1,7 @@
 package com.vickey.skillforge.controller;
 
 
+import com.vickey.skillforge.dto.LoginRequestDto;
 import com.vickey.skillforge.dto.UserRequestDto;
 import com.vickey.skillforge.dto.UserResponseDto;
 import com.vickey.skillforge.service.UserService;
@@ -64,6 +65,14 @@ public class UserController {
     {
         userService.deleteUser(userId);
         return ResponseEntity.noContent().build();
+    }
+
+    //login user
+    @PostMapping("/login")
+    public ResponseEntity<UserResponseDto> loginUser(@Valid @RequestBody  LoginRequestDto loginRequestDto)
+    {
+        UserResponseDto userResponseDto= userService.loginUser(loginRequestDto);
+        return ResponseEntity.ok(userResponseDto);
     }
 
 }

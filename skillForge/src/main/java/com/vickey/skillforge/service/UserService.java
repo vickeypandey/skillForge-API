@@ -1,17 +1,16 @@
 package com.vickey.skillforge.service;
-
-
-
+import com.vickey.skillforge.dto.LoginRequestDto;
 import com.vickey.skillforge.dto.SkillResponseDto;
 import com.vickey.skillforge.dto.UserRequestDto;
 import com.vickey.skillforge.dto.UserResponseDto;
 import com.vickey.skillforge.entity.Skill;
 import com.vickey.skillforge.entity.User;
 import com.vickey.skillforge.exception.EmailAlreadyExistsException;
+import com.vickey.skillforge.exception.InvalidCredentialsException;
 import com.vickey.skillforge.exception.UserNotFoundException;
 import com.vickey.skillforge.repository.UserRepository;
 import org.springframework.stereotype.Service;
-
+import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -22,10 +21,12 @@ import lombok.extern.slf4j.Slf4j;
 public class UserService {
 
   private final  UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
 
-  public UserService(UserRepository userRepository)
+  public UserService(UserRepository userRepository,PasswordEncoder passwordEncoder)
   {
       this.userRepository=userRepository;
+      this.passwordEncoder=passwordEncoder;
   }
 
   //creation of conversion of dto to entites
@@ -44,7 +45,7 @@ public class UserService {
         User user=new User();
         user.setName(userRequestDto.getName());
         user.setEmail(userRequestDto.getEmail());
-        user.setPassword(userRequestDto.getPassword());
+        user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
         return user;
     }
     private UserResponseDto convertToResponseDto(User user) {
@@ -105,5 +106,18 @@ public class UserService {
         userRepository.delete(user);
     }
 
+
+    //login method
+    public UserResponseDto loginUser(LoginRequestDto loginRequestDto)
+    {
+        User user= userRepository.findByEmail(loginRequestDto.getEmail()).orElseThrow(()-> new UserNotFoundException("user not found with this email."));
+
+        boolean passwordMatches= passwordEncoder.matches(loginRequestDto.getPassword(),user.getPassword());
+
+        if(!passwordMatches) {
+            throw new InvalidCredentialsException("wrong email or password");
+        }
+        return convertToResponseDto(user);
+    }
 
 }
