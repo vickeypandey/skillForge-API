@@ -13,4 +13,5 @@ public class UserResponseDto {
 
     private Long id;
     List<SkillResponseDto> skills;
+
 }

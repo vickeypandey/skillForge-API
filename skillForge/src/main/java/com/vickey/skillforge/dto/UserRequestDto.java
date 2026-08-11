@@ -20,4 +20,6 @@ public class UserRequestDto {
     @Email
     @NotBlank
     private String email;
+
+
 }

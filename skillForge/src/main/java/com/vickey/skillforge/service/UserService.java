@@ -1,8 +1,5 @@
 package com.vickey.skillforge.service;
-import com.vickey.skillforge.dto.LoginRequestDto;
-import com.vickey.skillforge.dto.SkillResponseDto;
-import com.vickey.skillforge.dto.UserRequestDto;
-import com.vickey.skillforge.dto.UserResponseDto;
+import com.vickey.skillforge.dto.*;
 import com.vickey.skillforge.entity.Skill;
 import com.vickey.skillforge.entity.User;
 import com.vickey.skillforge.exception.EmailAlreadyExistsException;
@@ -14,6 +11,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import com.vickey.skillforge.service.JwtService;
+
 
 @Slf4j
 
@@ -22,11 +21,13 @@ public class UserService {
 
   private final  UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
+  private final JwtService jwtService;
 
-  public UserService(UserRepository userRepository,PasswordEncoder passwordEncoder)
+  public UserService(UserRepository userRepository,PasswordEncoder passwordEncoder,JwtService jwtService)
   {
       this.userRepository=userRepository;
       this.passwordEncoder=passwordEncoder;
+      this.jwtService=jwtService;
   }
 
   //creation of conversion of dto to entites
@@ -108,7 +109,7 @@ public class UserService {
 
 
     //login method
-    public UserResponseDto loginUser(LoginRequestDto loginRequestDto)
+    public LoginResponseDto loginUser(LoginRequestDto loginRequestDto)
     {
         User user= userRepository.findByEmail(loginRequestDto.getEmail()).orElseThrow(()-> new UserNotFoundException("user not found with this email."));
 
@@ -117,7 +118,8 @@ public class UserService {
         if(!passwordMatches) {
             throw new InvalidCredentialsException("wrong email or password");
         }
-        return convertToResponseDto(user);
+       String token= jwtService.generateToken(user.getEmail());
+        return new LoginResponseDto(token);
     }
 
 }

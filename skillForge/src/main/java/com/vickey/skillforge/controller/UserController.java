@@ -2,6 +2,7 @@ package com.vickey.skillforge.controller;
 
 
 import com.vickey.skillforge.dto.LoginRequestDto;
+import com.vickey.skillforge.dto.LoginResponseDto;
 import com.vickey.skillforge.dto.UserRequestDto;
 import com.vickey.skillforge.dto.UserResponseDto;
 import com.vickey.skillforge.service.UserService;
@@ -69,10 +70,10 @@ public class UserController {
 
     //login user
     @PostMapping("/login")
-    public ResponseEntity<UserResponseDto> loginUser(@Valid @RequestBody  LoginRequestDto loginRequestDto)
+    public ResponseEntity<LoginResponseDto> loginUser(@Valid @RequestBody  LoginRequestDto loginRequestDto)
     {
-        UserResponseDto userResponseDto= userService.loginUser(loginRequestDto);
-        return ResponseEntity.ok(userResponseDto);
+        LoginResponseDto loginResponseDto = userService.loginUser(loginRequestDto);
+        return ResponseEntity.ok(loginResponseDto);
     }
 
 }
