@@ -2,6 +2,7 @@ package com.vickey.skillforge.service;
 import com.vickey.skillforge.dto.*;
 import com.vickey.skillforge.entity.Skill;
 import com.vickey.skillforge.entity.User;
+import com.vickey.skillforge.enums.Role;
 import com.vickey.skillforge.exception.EmailAlreadyExistsException;
 import com.vickey.skillforge.exception.InvalidCredentialsException;
 import com.vickey.skillforge.exception.UserNotFoundException;
@@ -47,6 +48,7 @@ public class UserService {
         user.setName(userRequestDto.getName());
         user.setEmail(userRequestDto.getEmail());
         user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
+        user.setRole(Role.USER);
         return user;
     }
     private UserResponseDto convertToResponseDto(User user) {

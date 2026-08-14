@@ -1,5 +1,6 @@
 package com.vickey.skillforge.entity;
 
+import com.vickey.skillforge.enums.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,5 +29,8 @@ public class User {
     private String password;
 
     private String name;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
 }
