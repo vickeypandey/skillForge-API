@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "User APIs", description = "APIs for user registration and user management")
@@ -53,6 +54,7 @@ public class UserController {
     }
 
     @Operation(summary = "Update user  by ID")
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{userId}")
     public ResponseEntity<UserResponseDto> upddateUserById(@PathVariable Long userId, @Valid @RequestBody UserRequestDto userRequestDto)
     {
@@ -61,6 +63,7 @@ public class UserController {
     }
 
     @Operation(summary = "Delete specific user by ID")
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> deleteUserById(@PathVariable Long userId)
     {
