@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "User APIs", description = "APIs for user registration and user management")
@@ -77,6 +78,16 @@ public class UserController {
     {
         LoginResponseDto loginResponseDto = userService.loginUser(loginRequestDto);
         return ResponseEntity.ok(loginResponseDto);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponseDto> getCurrentUser(
+            Authentication authentication) {
+
+        UserResponseDto user =
+                userService.getCurrentUser(authentication.getName());
+
+        return ResponseEntity.ok(user);
     }
 
 }
