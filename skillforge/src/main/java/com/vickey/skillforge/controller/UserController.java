@@ -1,10 +1,7 @@
 package com.vickey.skillforge.controller;
 
 
-import com.vickey.skillforge.dto.LoginRequestDto;
-import com.vickey.skillforge.dto.LoginResponseDto;
-import com.vickey.skillforge.dto.UserRequestDto;
-import com.vickey.skillforge.dto.UserResponseDto;
+import com.vickey.skillforge.dto.*;
 import com.vickey.skillforge.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -88,6 +85,20 @@ public class UserController {
                 userService.getCurrentUser(authentication.getName());
 
         return ResponseEntity.ok(user);
+    }
+    //updating self data
+    @PutMapping("/me")
+    public ResponseEntity<UserResponseDto> updateCurrentUser(
+            Authentication authentication,
+            @Valid @RequestBody UpdateProfileRequestDto updateProfileRequestDto) {
+
+        UserResponseDto updatedUser =
+                userService.updateCurrentUser(
+                        authentication.getName(),
+                        updateProfileRequestDto
+                );
+
+        return ResponseEntity.ok(updatedUser);
     }
 
 }

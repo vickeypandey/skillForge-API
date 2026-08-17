@@ -7,6 +7,7 @@ import com.vickey.skillforge.exception.EmailAlreadyExistsException;
 import com.vickey.skillforge.exception.InvalidCredentialsException;
 import com.vickey.skillforge.exception.UserNotFoundException;
 import com.vickey.skillforge.repository.UserRepository;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.ArrayList;
@@ -124,4 +125,33 @@ public class UserService {
         return new LoginResponseDto(token);
     }
 
+
+    //me implementation
+
+    public UserResponseDto getCurrentUser(String email) {
+        User user= userRepository.findByEmail(email).orElseThrow(()-> new UserNotFoundException("user not found "));
+        return convertToResponseDto(user);
+    }
+
+
+
+    //self update
+    public UserResponseDto updateCurrentUser(
+            String email,
+            UpdateProfileRequestDto updateProfileRequestDto) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new UserNotFoundException(
+                                "User not found with email: " + email
+                        )
+                );
+
+        user.setName(updateProfileRequestDto.getName());
+
+
+        User updatedUser = userRepository.save(user);
+
+        return convertToResponseDto(updatedUser);
+    }
 }
