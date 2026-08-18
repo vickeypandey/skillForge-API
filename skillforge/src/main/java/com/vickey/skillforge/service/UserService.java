@@ -1,5 +1,6 @@
 package com.vickey.skillforge.service;
 import com.vickey.skillforge.dto.*;
+import com.vickey.skillforge.entity.RefreshToken;
 import com.vickey.skillforge.entity.Skill;
 import com.vickey.skillforge.entity.User;
 import com.vickey.skillforge.enums.Role;
@@ -24,12 +25,15 @@ public class UserService {
   private final  UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
   private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
 
-  public UserService(UserRepository userRepository,PasswordEncoder passwordEncoder,JwtService jwtService)
+
+    public UserService(UserRepository userRepository,PasswordEncoder passwordEncoder,JwtService jwtService,RefreshTokenService refreshTokenService)
   {
       this.userRepository=userRepository;
       this.passwordEncoder=passwordEncoder;
       this.jwtService=jwtService;
+      this.refreshTokenService=refreshTokenService;
   }
 
   //creation of conversion of dto to entites
@@ -121,8 +125,14 @@ public class UserService {
         if(!passwordMatches) {
             throw new InvalidCredentialsException("wrong email or password");
         }
-       String token= jwtService.generateToken(user.getEmail());
-        return new LoginResponseDto(token);
+        String accessToken =
+                jwtService.generateToken(user.getEmail());
+        RefreshToken refreshToken =
+                refreshTokenService.createRefreshToken(user);
+        return new LoginResponseDto(
+                accessToken,
+                refreshToken.getToken()
+        );
     }
 
 
