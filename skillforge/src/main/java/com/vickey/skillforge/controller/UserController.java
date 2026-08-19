@@ -101,4 +101,12 @@ public class UserController {
         return ResponseEntity.ok(updatedUser);
     }
 
+    @PostMapping("/refresh-token")
+    public ResponseEntity<LoginResponseDto>
+    refreshAccessToken(@Valid @RequestBody RefreshTokenRequestDto requestDto) {
+        LoginResponseDto response =
+                userService.refreshAccessToken(requestDto);
+        return ResponseEntity.ok(response);
+    }
+
 }

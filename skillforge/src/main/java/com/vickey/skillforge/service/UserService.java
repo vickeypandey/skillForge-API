@@ -164,4 +164,19 @@ public class UserService {
 
         return convertToResponseDto(updatedUser);
     }
+
+    public LoginResponseDto refreshAccessToken(
+            RefreshTokenRequestDto requestDto) {
+        RefreshToken refreshToken =
+                refreshTokenService.verifyRefreshToken(
+                        requestDto.getRefreshToken()
+                );
+        User user = refreshToken.getUser();
+        String newAccessToken =
+                jwtService.generateToken(user.getEmail());
+        return new LoginResponseDto(
+                newAccessToken,
+                refreshToken.getToken()
+        );
+    }
 }

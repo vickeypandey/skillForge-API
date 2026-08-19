@@ -76,6 +76,7 @@ public class SecurityConfig {
                                 "/api/users/login",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
+                                "/api/users/refresh-token",
                                 "/v3/api-docs/**",
                                 "/webjars/**"
                         ).permitAll()
