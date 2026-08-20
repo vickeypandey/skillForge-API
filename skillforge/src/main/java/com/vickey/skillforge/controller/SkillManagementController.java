@@ -7,9 +7,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.Authenticator;
 import java.util.List;
 
 @Tag(name = "Skill APIs", description = "APIs for skill search, update, delete and pagination")
@@ -66,6 +69,15 @@ public class SkillManagementController {
         Page<SkillResponseDto> skillResponseDtos = skillService.getAllSkillsPaginated(page, size, sortBy, direction);
         return ResponseEntity.ok(skillResponseDtos);
 
+    }
+
+    @PostMapping
+    public ResponseEntity<SkillResponseDto> createSkill(@Valid @RequestBody
+                                                        SkillRequestDto skillRequestDto,
+                                                        Authentication authentication)
+    {
+        SkillResponseDto skillResponseDto= skillService.createSkill(authentication.getName(),skillRequestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(skillResponseDto);
     }
 }
 

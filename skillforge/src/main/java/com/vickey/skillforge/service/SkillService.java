@@ -8,6 +8,7 @@ import com.vickey.skillforge.exception.SkillNotFoundException;
 import com.vickey.skillforge.exception.UserNotFoundException;
 import com.vickey.skillforge.repository.SkillRepository;
 import com.vickey.skillforge.repository.UserRepository;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -154,6 +155,34 @@ public class SkillService {
 
             return skillResponseDto;
         });
+    }
+
+    public SkillResponseDto createSkill(String email, SkillRequestDto skillRequestDto) {
+        User user= userRepository.findByEmail(email).orElseThrow(()-> new UserNotFoundException("not found with this email"+email));
+        Skill skill= new Skill();
+        skill.setSkillName(skillRequestDto.getSkillName());
+        skill.setLevel(skillRequestDto.getLevel());
+        skill.setCategory(skillRequestDto.getCategory());
+        skill.setUser(user);
+        skill.setDescription(skillRequestDto.getDescription());
+
+        Skill savedSkill= skillRepository.save(skill);
+        return convertToSkillResponseDto(savedSkill);
+    }
+
+    private SkillResponseDto convertToSkillResponseDto(Skill savedSkill) {
+        SkillResponseDto skillResponseDto= new SkillResponseDto();
+
+        skillResponseDto.setSkillName(savedSkill.getSkillName());
+        skillResponseDto.setId(savedSkill.getId());
+        skillResponseDto.setCategory(savedSkill.getCategory());
+        skillResponseDto.setLevel(savedSkill.getLevel());
+        skillResponseDto.setDescription(savedSkill.getDescription());
+
+        skillResponseDto.setUserId(savedSkill.getUser().getId());
+        skillResponseDto.setUserName(savedSkill.getUser().getName());
+        return  skillResponseDto;
+
     }
 }
 
