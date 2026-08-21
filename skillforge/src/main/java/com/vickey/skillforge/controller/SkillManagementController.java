@@ -2,6 +2,8 @@ package com.vickey.skillforge.controller;
 
 import com.vickey.skillforge.dto.SkillRequestDto;
 import com.vickey.skillforge.dto.SkillResponseDto;
+import com.vickey.skillforge.entity.SkillCategory;
+import com.vickey.skillforge.entity.SkillLevel;
 import com.vickey.skillforge.service.SkillService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -70,7 +72,7 @@ public class SkillManagementController {
         return ResponseEntity.ok(skillResponseDtos);
 
     }
-
+//skills more details adding
     @PostMapping
     public ResponseEntity<SkillResponseDto> createSkill(@Valid @RequestBody
                                                         SkillRequestDto skillRequestDto,
@@ -78,6 +80,31 @@ public class SkillManagementController {
     {
         SkillResponseDto skillResponseDto= skillService.createSkill(authentication.getName(),skillRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(skillResponseDto);
+    }
+
+    @GetMapping("/category/{category}")
+    public ResponseEntity<List<SkillResponseDto>> getByCategory(
+            @PathVariable SkillCategory category) {
+        return ResponseEntity.ok(
+                skillService.getByCategory(category)
+        );
+    }
+    @GetMapping("/level/{level}")
+    public ResponseEntity<List<SkillResponseDto>>
+    getByLevel(
+            @PathVariable SkillLevel level) {
+        return ResponseEntity.ok(
+                skillService.getByLevel(level)
+        );
+    }
+    @GetMapping("/me")
+    public ResponseEntity<List<SkillResponseDto>>
+    getMySkills(Authentication authentication) {
+        return ResponseEntity.ok(
+                skillService.getMySkills(
+                        authentication.getName()
+                )
+        );
     }
 }
 

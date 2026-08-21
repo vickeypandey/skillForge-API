@@ -3,12 +3,17 @@ package com.vickey.skillforge.service;
 import com.vickey.skillforge.dto.SkillRequestDto;
 import com.vickey.skillforge.dto.SkillResponseDto;
 import com.vickey.skillforge.entity.Skill;
+import com.vickey.skillforge.entity.SkillCategory;
+import com.vickey.skillforge.entity.SkillLevel;
 import com.vickey.skillforge.entity.User;
+import com.vickey.skillforge.enums.Role;
+import com.vickey.skillforge.exception.DuplicateSkillException;
 import com.vickey.skillforge.exception.SkillNotFoundException;
 import com.vickey.skillforge.exception.UserNotFoundException;
 import com.vickey.skillforge.repository.SkillRepository;
 import com.vickey.skillforge.repository.UserRepository;
 import jakarta.validation.Valid;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -160,6 +165,13 @@ public class SkillService {
     public SkillResponseDto createSkill(String email, SkillRequestDto skillRequestDto) {
         User user= userRepository.findByEmail(email).orElseThrow(()-> new UserNotFoundException("not found with this email"+email));
         Skill skill= new Skill();
+        if (skillRepository
+                .existsByUserAndSkillNameIgnoreCase(
+                        user,
+                        skillRequestDto.getSkillName())) {
+            throw new DuplicateSkillException(
+                    "You already added this skill");
+        }
         skill.setSkillName(skillRequestDto.getSkillName());
         skill.setLevel(skillRequestDto.getLevel());
         skill.setCategory(skillRequestDto.getCategory());
@@ -183,6 +195,72 @@ public class SkillService {
         skillResponseDto.setUserName(savedSkill.getUser().getName());
         return  skillResponseDto;
 
+    }
+
+    public List<SkillResponseDto> getByCategory(
+            SkillCategory category) {
+        return skillRepository.findByCategory(category)
+                .stream()
+                .map(this::convertToSkillResponseDto)
+                .toList();
+    }
+    public List<SkillResponseDto> getByLevel(SkillLevel skillLevel)
+    {
+        return skillRepository.findByLevel(skillLevel)
+                .stream()
+                .map(this::convertToSkillResponseDto)
+                .toList();
+    }
+
+
+    public List<SkillResponseDto> getMySkills(String email) {
+
+        // 1. Find the currently logged-in user
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new UserNotFoundException("User not found"));
+
+        // 2. Find all skills belonging to that user
+        List<Skill> skills = skillRepository.findByUser(user);
+
+        // 3. Convert Skill entities into SkillResponseDto objects
+        return skills.stream()
+                .map(this::convertToSkillResponseDto)
+                .toList();
+    }
+    public SkillResponseDto updateSkill(
+            Long skillId,
+            String email,
+            SkillRequestDto requestDto) {
+        Skill skill = skillRepository.findById(skillId)
+                .orElseThrow(() ->
+                        new SkillNotFoundException(
+                                "Skill not found"
+                        )
+                );
+        User currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new UserNotFoundException(
+                                "User not found"
+                        )
+                );
+        boolean isOwner =
+                skill.getUser().getId()
+                        .equals(currentUser.getId());
+        boolean isAdmin =
+                currentUser.getRole() == Role.ADMIN;
+        if (!isOwner && !isAdmin) {
+            throw new RuntimeException(
+                    "You cannot update this skill"
+            );
+        }
+        skill.setSkillName(requestDto.getSkillName());
+        skill.setDescription(requestDto.getDescription());
+        skill.setCategory(requestDto.getCategory());
+        skill.setLevel(requestDto.getLevel());
+        return convertToSkillResponseDto(
+                skillRepository.save(skill)
+        );
     }
 }
 

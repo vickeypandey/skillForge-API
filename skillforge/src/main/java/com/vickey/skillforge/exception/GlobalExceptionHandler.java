@@ -76,4 +76,17 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
+
+    @ExceptionHandler(DuplicateSkillException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateSkillException(DuplicateSkillException ex){
+        ErrorResponse errorResponse= new ErrorResponse(
+                ex.getMessage(),
+                HttpStatus.CONTINUE.value(),
+                LocalDateTime.now().toString()
+        );
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(errorResponse);
+
+    }
 }
