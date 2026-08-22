@@ -228,6 +228,8 @@ public class SkillService {
                 .map(this::convertToSkillResponseDto)
                 .toList();
     }
+
+
     public SkillResponseDto updateSkill(
             Long skillId,
             String email,
