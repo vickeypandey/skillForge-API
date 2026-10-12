@@ -32,6 +32,9 @@ public class SecurityConfig {
         http
                 // REST API using JWT, so CSRF disabled
                 .csrf(csrf -> csrf.disable())
+                .formLogin(form -> form.disable())
+                .httpBasic(basic -> basic.disable())
+                .logout(logout -> logout.disable())
 
                 // No HTTP session; JWT comes with every protected request
                 .sessionManagement(session ->
@@ -72,17 +75,20 @@ public class SecurityConfig {
 
                         // Public APIs
                         .requestMatchers(
-                                "/api/users/register",
-                                "/api/users/login",
+                                "/api/v1/auth/register",
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/refresh",
+                                "/api/v1/auth/logout",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/api/users/refresh-token",
                                 "/v3/api-docs/**",
-                                "/webjars/**"
+                                "/webjars/**",
+                                "/actuator/health",
+                                "/actuator/health/**"
                         ).permitAll()
 
                         // Only ADMIN can get all users
-                        .requestMatchers("/api/users")
+                        .requestMatchers("/api/v1/users")
                         .hasRole("ADMIN")
 
                         // Everything else only needs valid authentication

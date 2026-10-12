@@ -2,6 +2,8 @@ package com.vickey.skillforge.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,6 +17,9 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("SkillForge API")
                         .version("1.0")
-                        .description("Backend APIs for SkillForge - a peer-to-peer skill exchange platform"));
+                        .description("Backend APIs for SkillForge - a peer-to-peer skill exchange platform"))
+                .components(new Components().addSecuritySchemes("bearerAuth",
+                        new SecurityScheme().type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer").bearerFormat("JWT")));
     }
 }

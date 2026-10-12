@@ -5,17 +5,17 @@ import com.vickey.skillforge.entity.SkillCategory;
 import com.vickey.skillforge.entity.SkillLevel;
 import com.vickey.skillforge.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 public interface SkillRepository extends JpaRepository<Skill,Long> {
 
     List<Skill> findByUserId(Long userId);
-    List<Skill> findBySkillNameContainingIgnoreCase(String skillName);
-    List<Skill> findByCategory(
-            SkillCategory category);
-    List<Skill> findByLevel(
-            SkillLevel level);
+    Page<Skill> findBySkillNameContainingIgnoreCase(String skillName, Pageable pageable);
+    Page<Skill> findByCategory(SkillCategory category, Pageable pageable);
+    Page<Skill> findByLevel(SkillLevel level, Pageable pageable);
     List<Skill> findByCategoryAndLevel(
             SkillCategory category,
             SkillLevel level);

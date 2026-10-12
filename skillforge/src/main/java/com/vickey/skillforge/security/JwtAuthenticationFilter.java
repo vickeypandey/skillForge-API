@@ -15,6 +15,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
+import io.jsonwebtoken.JwtException;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -49,10 +50,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         // 3. Remove "Bearer " and get only JWT
-        String token = authHeader.substring(7);
+        String token = authHeader.substring(7).trim();
+        if (token.isEmpty()) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-        // 4. Extract email from JWT
-        String email = jwtService.extractEmail(token);
+        final String email;
+        try {
+            email = jwtService.extractEmail(token);
+        } catch (JwtException | IllegalArgumentException ex) {
+            // Leave the request unauthenticated. Protected routes are rejected
+            // by Spring Security's authentication entry point.
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         // 5. Check that user is not already authenticated
         if (email != null &&

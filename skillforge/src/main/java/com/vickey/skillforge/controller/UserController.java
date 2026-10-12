@@ -13,10 +13,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @Tag(name = "User APIs", description = "APIs for user registration and user management")
+@SecurityRequirement(name = "bearerAuth")
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/v1/users")
 public class UserController {
 
 
@@ -24,13 +26,6 @@ public class UserController {
     public UserController(UserService userService)
     {
         this.userService=userService;
-    }
-
-    @PostMapping("/register")
-    public ResponseEntity<UserResponseDto> register(@Valid @RequestBody UserRequestDto userRequestDto)
-    {
-        UserResponseDto userResponseDto= userService.registerUser(userRequestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(userResponseDto);
     }
 
     @Operation(summary = "Get users by ID")
@@ -54,7 +49,7 @@ public class UserController {
     @Operation(summary = "Update user  by ID")
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{userId}")
-    public ResponseEntity<UserResponseDto> upddateUserById(@PathVariable Long userId, @Valid @RequestBody UserRequestDto userRequestDto)
+    public ResponseEntity<UserResponseDto> upddateUserById(@PathVariable Long userId, @Valid @RequestBody UpdateUserRequestDto userRequestDto)
     {
         UserResponseDto updateUser =userService.updateUser(userId,userRequestDto);
         return ResponseEntity.ok(updateUser);
@@ -67,14 +62,6 @@ public class UserController {
     {
         userService.deleteUser(userId);
         return ResponseEntity.noContent().build();
-    }
-
-    //login user
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> loginUser(@Valid @RequestBody  LoginRequestDto loginRequestDto)
-    {
-        LoginResponseDto loginResponseDto = userService.loginUser(loginRequestDto);
-        return ResponseEntity.ok(loginResponseDto);
     }
 
     @GetMapping("/me")
@@ -101,12 +88,11 @@ public class UserController {
         return ResponseEntity.ok(updatedUser);
     }
 
-    @PostMapping("/refresh-token")
-    public ResponseEntity<LoginResponseDto>
-    refreshAccessToken(@Valid @RequestBody RefreshTokenRequestDto requestDto) {
-        LoginResponseDto response =
-                userService.refreshAccessToken(requestDto);
-        return ResponseEntity.ok(response);
+    @PostMapping("/me/change-password")
+    public ResponseEntity<Void> changePassword(Authentication authentication,
+                                               @Valid @RequestBody ChangePasswordRequestDto request) {
+        userService.changePassword(authentication.getName(), request);
+        return ResponseEntity.noContent().build();
     }
 
 }
