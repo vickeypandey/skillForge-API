@@ -65,6 +65,7 @@ Requirements: Java 21, Maven (or the included Maven wrapper), and MySQL 8.4. Cre
 | `DB_PASSWORD` | Yes | MySQL password |
 | `JWT_SECRET` | Yes | Random signing key with at least 32 bytes |
 | `JWT_EXPIRATION` | No | Access token lifetime in milliseconds; defaults to `3600000` |
+| `FRONTEND_ORIGINS` | No | Comma-separated browser origins allowed by CORS; defaults to localhost and 127.0.0.1 on port 5500 |
 | `SPRING_PROFILES_ACTIVE` | No | `dev` by default; use `prod` for schema validation and SQL logging off |
 
 Copy `skillforge/.env.example` to `skillforge/.env` and fill in local values. Spring Boot and Docker Compose load that file when the working directory is `skillforge/`. Set `JWT_SECRET` to a random value with at least 32 bytes. To generate one in Windows PowerShell, run these lines (the instance-based API works in Windows PowerShell 5.1 too):
