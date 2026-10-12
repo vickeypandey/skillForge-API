@@ -58,11 +58,7 @@ public class SkillService {
     {
         log.info("Fetching skills  with skillid: {}", skillId);
         Skill skill=skillRepository.findById(skillId).orElseThrow(()-> new SkillNotFoundException("skillnot found with id:"+skillId));
-        SkillResponseDto skillResponseDto= new SkillResponseDto();
-        skillResponseDto.setId(skill.getId());
-        skillResponseDto.setSkillName(skill.getSkillName());
-        skillResponseDto.setUserId(skill.getUser().getId());
-        return skillResponseDto;
+        return convertToSkillResponseDto(skill);
     }
 
     public Page<SkillResponseDto> searchSkillsByName(String skillNameGot, Pageable pageable)
