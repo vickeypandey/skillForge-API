@@ -7,20 +7,23 @@ import com.vickey.skillforge.entity.SkillLevel;
 import com.vickey.skillforge.service.SkillService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.Authenticator;
 import java.util.List;
 
 @Tag(name = "Skill APIs", description = "APIs for skill search, update, delete and pagination")
+@SecurityRequirement(name = "bearerAuth")
 
 @RestController
-@RequestMapping("/api/skills")
+@RequestMapping("/api/v1/skills")
 public class SkillManagementController {
 
     private final SkillService skillService;
@@ -43,23 +46,25 @@ public class SkillManagementController {
 
     @Operation(summary = "update using skill id")
     @PutMapping("/{skillId}")
-    public ResponseEntity<SkillResponseDto> updateSkillById(@PathVariable Long skillId, @RequestBody @Valid SkillRequestDto skillRequestDto) {
-        SkillResponseDto skillResponseDto = skillService.updateSkillById(skillId, skillRequestDto);
+    public ResponseEntity<SkillResponseDto> updateSkillById(@PathVariable Long skillId, @RequestBody @Valid SkillRequestDto skillRequestDto, Authentication authentication) {
+        SkillResponseDto skillResponseDto = skillService.updateSkill(skillId, authentication.getName(), skillRequestDto);
         return ResponseEntity.ok(skillResponseDto);
     }
 
     @Operation(summary = "delete using skill id")
     @DeleteMapping("/{skillId}")
-    public ResponseEntity<Void> deleteSkillById(@PathVariable Long skillId) {
-        skillService.deleteSkillById(skillId);
+    public ResponseEntity<Void> deleteSkillById(@PathVariable Long skillId, Authentication authentication) {
+        skillService.deleteSkill(skillId, authentication.getName());
         return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Search skill , pagination and sorting")
     @GetMapping("/search")
-    public ResponseEntity<List<SkillResponseDto>> searchBySkillName(@RequestParam String skillName) {
-        List<SkillResponseDto> responseDtos = skillService.searchSkillsByName(skillName);
-        return ResponseEntity.ok(responseDtos);
+    public ResponseEntity<Page<SkillResponseDto>> searchBySkillName(
+            @RequestParam String skillName,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(skillService.searchSkillsByName(skillName, pageable(page, size)));
 
     }
 
@@ -83,19 +88,25 @@ public class SkillManagementController {
     }
 
     @GetMapping("/category/{category}")
-    public ResponseEntity<List<SkillResponseDto>> getByCategory(
-            @PathVariable SkillCategory category) {
+    public ResponseEntity<Page<SkillResponseDto>> getByCategory(
+            @PathVariable SkillCategory category,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
         return ResponseEntity.ok(
-                skillService.getByCategory(category)
+                skillService.getByCategory(category, pageable(page, size))
         );
     }
     @GetMapping("/level/{level}")
-    public ResponseEntity<List<SkillResponseDto>>
+    public ResponseEntity<Page<SkillResponseDto>>
     getByLevel(
-            @PathVariable SkillLevel level) {
-        return ResponseEntity.ok(
-                skillService.getByLevel(level)
-        );
+            @PathVariable SkillLevel level,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(skillService.getByLevel(level, pageable(page, size)));
+    }
+
+    private Pageable pageable(int page, int size) {
+        return PageRequest.of(Math.max(0, page), Math.max(1, Math.min(size, 100)));
     }
     @GetMapping("/me")
     public ResponseEntity<List<SkillResponseDto>>

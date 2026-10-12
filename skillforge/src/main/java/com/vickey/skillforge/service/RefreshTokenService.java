@@ -48,4 +48,24 @@ public class RefreshTokenService {
         }
         return refreshToken;
     }
+
+    @Transactional
+    public RefreshToken rotate(String token) {
+        RefreshToken current = verifyRefreshToken(token);
+        User user = current.getUser();
+        refreshTokenRepository.delete(current);
+        refreshTokenRepository.flush();
+        return createRefreshToken(user);
+    }
+
+    @Transactional
+    public void revoke(String token) {
+        refreshTokenRepository.findByToken(token)
+                .ifPresent(refreshTokenRepository::delete);
+    }
+
+    @Transactional
+    public void revokeForUser(User user) {
+        refreshTokenRepository.deleteByUser(user);
+    }
 }

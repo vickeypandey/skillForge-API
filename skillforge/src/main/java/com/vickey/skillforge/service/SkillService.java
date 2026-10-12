@@ -10,6 +10,7 @@ import com.vickey.skillforge.enums.Role;
 import com.vickey.skillforge.exception.DuplicateSkillException;
 import com.vickey.skillforge.exception.SkillNotFoundException;
 import com.vickey.skillforge.exception.UserNotFoundException;
+import com.vickey.skillforge.exception.ForbiddenOperationException;
 import com.vickey.skillforge.repository.SkillRepository;
 import com.vickey.skillforge.repository.UserRepository;
 import jakarta.validation.Valid;
@@ -37,22 +38,6 @@ public class SkillService {
         this.userRepository = userRepository;
     }
 
-    public SkillResponseDto addSkill(SkillRequestDto skillRequestDto, Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("user not found with:" + userId));
-        Skill skill = new Skill();
-        skill.setSkillName(skillRequestDto.getSkillName());
-        skill.setUser(user);
-        Skill savedSkill = skillRepository.save(skill);
-        log.info("Skill added successfully with id: {} for user id: {}",
-                savedSkill.getId(), userId);
-
-        SkillResponseDto skillResponseDto = new SkillResponseDto();
-        skillResponseDto.setSkillName(savedSkill.getSkillName());
-        skillResponseDto.setId(savedSkill.getId());
-        skillResponseDto.setUserId(savedSkill.getUser().getId());
-        return skillResponseDto;
-    }
-
     public List<SkillResponseDto> getAllSkillsOfUser(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("user not found  with id:" + userId));
         List<Skill> skills = skillRepository.findByUserId(userId);
@@ -73,52 +58,13 @@ public class SkillService {
     {
         log.info("Fetching skills  with skillid: {}", skillId);
         Skill skill=skillRepository.findById(skillId).orElseThrow(()-> new SkillNotFoundException("skillnot found with id:"+skillId));
-        SkillResponseDto skillResponseDto= new SkillResponseDto();
-        skillResponseDto.setId(skill.getId());
-        skillResponseDto.setSkillName(skill.getSkillName());
-        skillResponseDto.setUserId(skill.getUser().getId());
-        return skillResponseDto;
+        return convertToSkillResponseDto(skill);
     }
 
-    public SkillResponseDto updateSkillById(Long skillId,SkillRequestDto skillRequestDto)
+    public Page<SkillResponseDto> searchSkillsByName(String skillNameGot, Pageable pageable)
     {
-        Skill skill= skillRepository.findById(skillId).orElseThrow(()-> new SkillNotFoundException("skill not found"+skillId));
-        skill.setSkillName(skillRequestDto.getSkillName());
-        Skill updatedSkill=skillRepository.save(skill);
-        log.info("Skill updated successfully with id: {}", updatedSkill.getId());
-
-        SkillResponseDto skillResponseDto= new SkillResponseDto();
-        skillResponseDto.setSkillName(updatedSkill.getSkillName());
-        skillResponseDto.setUserId(updatedSkill.getUser().getId());
-        skillResponseDto.setId(updatedSkill.getId());
-        return skillResponseDto;
-    }
-
-    public void deleteSkillById(Long skillId)
-    {
-        Skill skill= skillRepository.findById(skillId).orElseThrow(()-> new SkillNotFoundException("skill not found with skill id: "+ skillId));
-
-        skillRepository.delete(skill);
-
-        log.info("Skill deleted successfully with id: {}", skillId);
-    }
-
-    public List<SkillResponseDto> searchSkillsByName(String skillNameGot)
-    {
-        List<Skill> skills= skillRepository.findBySkillNameContainingIgnoreCase(skillNameGot);
-
-        List<SkillResponseDto> responseDtos =new ArrayList<>();
-        for(Skill skill:skills)
-        {
-            SkillResponseDto skillResponseDto= new SkillResponseDto();
-            skillResponseDto.setSkillName(skill.getSkillName());
-            skillResponseDto.setId(skill.getId());
-            skillResponseDto.setUserId(skill.getUser().getId());
-            responseDtos.add(skillResponseDto);
-
-        }
-        return responseDtos;
-
+        return skillRepository.findBySkillNameContainingIgnoreCase(skillNameGot, pageable)
+                .map(this::convertToSkillResponseDto);
     }
 
     //paging
@@ -128,9 +74,7 @@ public class SkillService {
             page = 0;
         }
 
-        if (size <= 0) {
-            size = 5;
-        }
+        size = Math.max(1, Math.min(size, 100));
 
 
         if (!sortBy.equals("id") &&
@@ -197,19 +141,12 @@ public class SkillService {
 
     }
 
-    public List<SkillResponseDto> getByCategory(
-            SkillCategory category) {
-        return skillRepository.findByCategory(category)
-                .stream()
-                .map(this::convertToSkillResponseDto)
-                .toList();
+    public Page<SkillResponseDto> getByCategory(SkillCategory category, Pageable pageable) {
+        return skillRepository.findByCategory(category, pageable).map(this::convertToSkillResponseDto);
     }
-    public List<SkillResponseDto> getByLevel(SkillLevel skillLevel)
+    public Page<SkillResponseDto> getByLevel(SkillLevel skillLevel, Pageable pageable)
     {
-        return skillRepository.findByLevel(skillLevel)
-                .stream()
-                .map(this::convertToSkillResponseDto)
-                .toList();
+        return skillRepository.findByLevel(skillLevel, pageable).map(this::convertToSkillResponseDto);
     }
 
 
@@ -252,9 +189,7 @@ public class SkillService {
         boolean isAdmin =
                 currentUser.getRole() == Role.ADMIN;
         if (!isOwner && !isAdmin) {
-            throw new RuntimeException(
-                    "You cannot update this skill"
-            );
+            throw new ForbiddenOperationException("You cannot update this skill");
         }
         skill.setSkillName(requestDto.getSkillName());
         skill.setDescription(requestDto.getDescription());
@@ -263,6 +198,19 @@ public class SkillService {
         return convertToSkillResponseDto(
                 skillRepository.save(skill)
         );
+    }
+
+    public void deleteSkill(Long skillId, String email) {
+        Skill skill = skillRepository.findById(skillId)
+                .orElseThrow(() -> new SkillNotFoundException("Skill not found"));
+        User currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        boolean isOwner = skill.getUser().getId().equals(currentUser.getId());
+        boolean isAdmin = currentUser.getRole() == Role.ADMIN;
+        if (!isOwner && !isAdmin) {
+            throw new ForbiddenOperationException("You cannot delete this skill");
+        }
+        skillRepository.delete(skill);
     }
 }
 

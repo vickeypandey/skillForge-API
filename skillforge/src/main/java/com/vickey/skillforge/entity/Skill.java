@@ -6,6 +6,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 @Entity
+@Table(indexes = {
+        @Index(name = "idx_skill_user_id", columnList = "user_id"),
+        @Index(name = "idx_skill_category_level", columnList = "category, level")
+})
 @Getter
 @Setter
 public class Skill {

@@ -1,7 +1,6 @@
 package com.vickey.skillforge.service;
 import com.vickey.skillforge.dto.*;
 import com.vickey.skillforge.entity.RefreshToken;
-import com.vickey.skillforge.entity.Skill;
 import com.vickey.skillforge.entity.User;
 import com.vickey.skillforge.enums.Role;
 import com.vickey.skillforge.exception.EmailAlreadyExistsException;
@@ -11,7 +10,6 @@ import com.vickey.skillforge.repository.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import com.vickey.skillforge.service.JwtService;
@@ -39,7 +37,8 @@ public class UserService {
   //creation of conversion of dto to entites
     public UserResponseDto registerUser(UserRequestDto userRequestDto)
     {
-        if (userRepository.existsByEmail(userRequestDto.getEmail())) {
+        String normalizedEmail = userRequestDto.getEmail().trim().toLowerCase();
+        if (userRepository.existsByEmail(normalizedEmail)) {
             throw new EmailAlreadyExistsException("Email already exists");
         }
         User user= convertToUser(userRequestDto);
@@ -51,7 +50,7 @@ public class UserService {
     {
         User user=new User();
         user.setName(userRequestDto.getName());
-        user.setEmail(userRequestDto.getEmail());
+        user.setEmail(userRequestDto.getEmail().trim().toLowerCase());
         user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
         user.setRole(Role.USER);
         return user;
@@ -63,20 +62,6 @@ public class UserService {
         responseDTO.setId(user.getId());
         responseDTO.setName(user.getName());
         responseDTO.setEmail(user.getEmail());
-
-        List<SkillResponseDto> skillDtos = new ArrayList<>();
-        for (Skill skill : user.getSkills()) {
-
-            SkillResponseDto skillDto = new SkillResponseDto();
-
-            skillDto.setId(skill.getId());
-            skillDto.setSkillName(skill.getSkillName());
-            skillDto.setUserId(user.getId());
-
-            skillDtos.add(skillDto);
-        }
-
-        responseDTO.setSkills(skillDtos);
 
         return responseDTO;
     }
@@ -97,12 +82,16 @@ public class UserService {
                 .toList();
     }
     //updating user
-    public UserResponseDto updateUser(Long userId, UserRequestDto userRequestDto)
+    public UserResponseDto updateUser(Long userId, UpdateUserRequestDto userRequestDto)
     {
         User user= userRepository.findById(userId).orElseThrow(()-> new UserNotFoundException("User not found with id: " + userId));
+        String normalizedEmail = userRequestDto.getEmail().trim().toLowerCase();
+        if (!user.getEmail().equalsIgnoreCase(normalizedEmail)
+                && userRepository.existsByEmail(normalizedEmail)) {
+            throw new EmailAlreadyExistsException("Email already exists");
+        }
         user.setName(userRequestDto.getName());
-        user.setEmail(userRequestDto.getEmail());
-        user.setPassword(userRequestDto.getPassword());
+        user.setEmail(normalizedEmail);
         User updatedUser=userRepository.save(user);
         return convertToResponseDto(updatedUser);
     }
@@ -118,15 +107,15 @@ public class UserService {
     //login method
     public LoginResponseDto loginUser(LoginRequestDto loginRequestDto)
     {
-        User user= userRepository.findByEmail(loginRequestDto.getEmail()).orElseThrow(()-> new UserNotFoundException("user not found with this email."));
+        User user = userRepository.findByEmail(loginRequestDto.getEmail().trim().toLowerCase())
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
 
         boolean passwordMatches= passwordEncoder.matches(loginRequestDto.getPassword(),user.getPassword());
 
         if(!passwordMatches) {
-            throw new InvalidCredentialsException("wrong email or password");
+            throw new InvalidCredentialsException("Invalid email or password");
         }
-        String accessToken =
-                jwtService.generateToken(user.getEmail());
+        String accessToken = jwtService.generateToken(user.getEmail(), user.getRole().name());
         RefreshToken refreshToken =
                 refreshTokenService.createRefreshToken(user);
         return new LoginResponseDto(
@@ -165,18 +154,32 @@ public class UserService {
         return convertToResponseDto(updatedUser);
     }
 
+    public void changePassword(String email, ChangePasswordRequestDto request) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new InvalidCredentialsException("Current password is incorrect");
+        }
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        refreshTokenService.revokeForUser(user);
+    }
+
     public LoginResponseDto refreshAccessToken(
             RefreshTokenRequestDto requestDto) {
         RefreshToken refreshToken =
-                refreshTokenService.verifyRefreshToken(
+                refreshTokenService.rotate(
                         requestDto.getRefreshToken()
                 );
         User user = refreshToken.getUser();
-        String newAccessToken =
-                jwtService.generateToken(user.getEmail());
+        String newAccessToken = jwtService.generateToken(user.getEmail(), user.getRole().name());
         return new LoginResponseDto(
                 newAccessToken,
                 refreshToken.getToken()
         );
+    }
+
+    public void logout(RefreshTokenRequestDto requestDto) {
+        refreshTokenService.revoke(requestDto.getRefreshToken());
     }
 }

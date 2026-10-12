@@ -6,6 +6,7 @@ import com.vickey.skillforge.dto.SkillResponseDto;
 import com.vickey.skillforge.service.SkillService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,8 +15,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Tag(name = "User Skill APIs", description = "APIs for managing skills of a particular user")
+@SecurityRequirement(name = "bearerAuth")
 @RestController
-@RequestMapping("/api/users/{userId}/skills")
+@RequestMapping("/api/v1/users/{userId}/skills")
 
 public class SkillController {
 
@@ -24,16 +26,6 @@ public class SkillController {
     {
         this.skillService=skillService;
     }
-
-    @Operation(summary = "Set skills of a user by ID")
-    @PostMapping
-    public ResponseEntity<SkillResponseDto> saveSkill(@PathVariable Long userId, @RequestBody
-                                                      @Valid SkillRequestDto skillRequestDto)
-    {
-        SkillResponseDto skillResponseDto= skillService.addSkill(skillRequestDto,userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(skillResponseDto);
-    }
-
 
     @Operation(summary = "Get skills by userID")
     @GetMapping
